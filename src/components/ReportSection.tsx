@@ -1,5 +1,6 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 
 interface ReportSectionProps {
   title: string;
@@ -44,11 +45,21 @@ const ReportSection = ({ title, risk, status, description, details }: ReportSect
   const color = getRiskColor();
   
   return (
-    <Card className={`border-l-4 ${status ? `border-l-${color}-DEFAULT` : 'border-l-safe-DEFAULT'}`}>
+    <Card 
+      className={cn(
+        `border-l-4 transition-all duration-300 hover:scale-[1.02] animate-fade-in`,
+        status ? `border-l-${color}-DEFAULT hover:bg-${color}-light/10` : 'border-l-safe-DEFAULT hover:bg-safe-light/10'
+      )}
+    >
       <CardHeader className="py-3">
         <div className="flex justify-between items-center">
           <CardTitle className="text-base font-medium">{title}</CardTitle>
-          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${status ? `bg-${color}-light text-${color}-DEFAULT` : 'bg-safe-light text-safe-DEFAULT'}`}>
+          <span 
+            className={cn(
+              `inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium transition-colors duration-300`,
+              status ? `bg-${color}-light text-${color}-DEFAULT` : 'bg-safe-light text-safe-DEFAULT'
+            )}
+          >
             {getRiskLabel()}
           </span>
         </div>
@@ -56,7 +67,12 @@ const ReportSection = ({ title, risk, status, description, details }: ReportSect
       <CardContent className="py-3">
         <p className="text-sm text-muted-foreground mb-1">{description}</p>
         {details && (
-          <p className={`text-sm font-medium ${status ? `text-${color}-DEFAULT` : 'text-safe-DEFAULT'}`}>
+          <p 
+            className={cn(
+              `text-sm font-medium transition-colors duration-300`,
+              status ? `text-${color}-DEFAULT` : 'text-safe-DEFAULT'
+            )}
+          >
             {details}
           </p>
         )}

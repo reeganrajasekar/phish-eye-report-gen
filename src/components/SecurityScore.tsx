@@ -1,5 +1,7 @@
 
 import { useEffect, useRef } from 'react';
+import { Progress } from '@/components/ui/progress';
+import { cn } from '@/lib/utils';
 
 interface SecurityScoreProps {
   score: number;
@@ -14,13 +16,26 @@ const SecurityScore = ({ score, riskLevel }: SecurityScoreProps) => {
   const getColor = () => {
     switch (riskLevel) {
       case 'safe':
-        return 'safe';
+        return 'bg-safe-DEFAULT';
       case 'suspicious':
-        return 'warning';
+        return 'bg-warning-DEFAULT';
       case 'dangerous':
-        return 'danger';
+        return 'bg-danger-DEFAULT';
       default:
-        return 'neutral';
+        return 'bg-neutral-DEFAULT';
+    }
+  };
+
+  const getGradient = () => {
+    switch (riskLevel) {
+      case 'safe':
+        return 'from-safe-light to-safe-DEFAULT';
+      case 'suspicious':
+        return 'from-warning-light to-warning-DEFAULT';
+      case 'dangerous':
+        return 'from-danger-light to-danger-DEFAULT';
+      default:
+        return 'from-neutral-light to-neutral-DEFAULT';
     }
   };
   
@@ -29,31 +44,41 @@ const SecurityScore = ({ score, riskLevel }: SecurityScoreProps) => {
     if (pointerRef.current && arcRef.current) {
       const rotation = Math.min(180, Math.max(0, (score / 100) * 180));
       pointerRef.current.style.transform = `rotate(${rotation}deg)`;
-      
-      // Set arc color
-      const color = getColor();
-      arcRef.current.style.borderColor = `transparent transparent var(--tw-colors-${color})`;
     }
   }, [score, riskLevel]);
   
   return (
-    <div className="mt-4 mb-8">
-      <div className="security-gauge">
-        <div 
-          ref={arcRef} 
-          className="security-gauge-arc" 
-          style={{ borderColor: `transparent transparent var(--tw-colors-${getColor()})` }}
-        />
-        <div ref={pointerRef} className="security-gauge-pointer" />
-        <div className="security-gauge-value">
-          {score}
+    <div className="mt-4 mb-8 animate-fade-in">
+      <div className={cn(
+        "p-6 rounded-lg bg-gradient-to-br transition-all duration-500",
+        getGradient()
+      )}>
+        <div className="security-gauge">
+          <div ref={arcRef} className="security-gauge-arc" />
+          <div 
+            ref={pointerRef} 
+            className={cn(
+              "security-gauge-pointer transition-transform duration-700 ease-in-out",
+              getColor()
+            )} 
+          />
+          <div className="security-gauge-value text-white">
+            {score}
+          </div>
         </div>
-      </div>
-      <div className="text-center mt-4">
-        <h3 className={`text-xl font-bold text-${getColor()}-DEFAULT`}>
-          {riskLevel === 'safe' ? 'Safe' : riskLevel === 'suspicious' ? 'Suspicious' : 'Dangerous'}
-        </h3>
-        <p className="text-muted-foreground">Security Score</p>
+        <div className="text-center mt-4">
+          <h3 className="text-xl font-bold text-white animate-pulse-slow">
+            {riskLevel === 'safe' ? 'Safe' : riskLevel === 'suspicious' ? 'Suspicious' : 'Dangerous'}
+          </h3>
+          <p className="text-white/80">Security Score</p>
+          <Progress 
+            value={score} 
+            className={cn(
+              "mt-4 h-2 transition-all duration-500",
+              getColor()
+            )}
+          />
+        </div>
       </div>
     </div>
   );
