@@ -17,48 +17,29 @@ export interface AnalysisResult {
   features: UrlFeature[];
 }
 
-// Improved domain age calculation using a hash function for demo
-const getDomainAge = (domain: string): number => {
-  const currentDate = new Date();
-  const registrationDate = new Date();
-  
-  // Create a deterministic "registration date" based on domain name
-  const hash = domain.split('').reduce((acc, char) => {
-    return acc + char.charCodeAt(0);
-  }, 0);
-  
-  // Set registration date between 0-5 years ago
-  registrationDate.setDate(registrationDate.getDate() - (hash % (365 * 5)));
-  
-  const ageInDays = Math.floor((currentDate.getTime() - registrationDate.getTime()) / (1000 * 60 * 60 * 24));
-  return ageInDays;
-};
-
-// Check domain age and DNS records
+// Check DNS records
 const checkDomainInfo = async (url: string): Promise<UrlFeature> => {
   try {
     const urlObj = new URL(url);
     const hostname = urlObj.hostname;
-    const domainAge = getDomainAge(hostname);
     const dnsCheck = await checkDnsRecords(hostname);
     
     const details = [
-      `Domain age: ${domainAge} days`,
-      `DNS Records:`,
+      'DNS Records:',
       ...dnsCheck.records.map(record => `${record.type}: ${record.value}`)
     ].join('\n');
     
     return {
       name: "Domain Information",
-      description: "Checks domain age and DNS records",
-      risk: domainAge < 30 ? 'high' : (domainAge < 180 ? 'medium' : 'low'),
-      status: domainAge < 180 || !dnsCheck.hasValidRecords,
+      description: "Checks DNS records",
+      risk: dnsCheck.hasValidRecords ? 'low' : 'high',
+      status: !dnsCheck.hasValidRecords,
       details
     };
   } catch (e) {
     return {
       name: "Domain Information",
-      description: "Checks domain age and DNS records",
+      description: "Checks DNS records",
       risk: 'high',
       status: true,
       details: 'Unable to verify domain information'
