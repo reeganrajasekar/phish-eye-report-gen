@@ -2,6 +2,8 @@
 import { useEffect, useRef } from 'react';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
+import { AlertCircle, CheckCircle, ShieldAlert, Shield } from 'lucide-react';
 
 interface SecurityScoreProps {
   score: number;
@@ -16,26 +18,39 @@ const SecurityScore = ({ score, riskLevel }: SecurityScoreProps) => {
   const getColor = () => {
     switch (riskLevel) {
       case 'safe':
-        return 'bg-safe-DEFAULT';
+        return 'bg-green-500';
       case 'suspicious':
-        return 'bg-warning-DEFAULT';
+        return 'bg-yellow-500';
       case 'dangerous':
-        return 'bg-danger-DEFAULT';
+        return 'bg-red-500';
       default:
-        return 'bg-neutral-DEFAULT';
+        return 'bg-gray-500';
     }
   };
 
   const getGradient = () => {
     switch (riskLevel) {
       case 'safe':
-        return 'from-safe-light to-safe-DEFAULT';
+        return 'from-green-400 to-green-600';
       case 'suspicious':
-        return 'from-warning-light to-warning-DEFAULT';
+        return 'from-yellow-400 to-yellow-600';
       case 'dangerous':
-        return 'from-danger-light to-danger-DEFAULT';
+        return 'from-red-400 to-red-600';
       default:
-        return 'from-neutral-light to-neutral-DEFAULT';
+        return 'from-gray-400 to-gray-600';
+    }
+  };
+  
+  const getIcon = () => {
+    switch (riskLevel) {
+      case 'safe':
+        return <CheckCircle className="h-6 w-6" />;
+      case 'suspicious':
+        return <AlertCircle className="h-6 w-6" />;
+      case 'dangerous':
+        return <ShieldAlert className="h-6 w-6" />;
+      default:
+        return <Shield className="h-6 w-6" />;
     }
   };
   
@@ -50,7 +65,7 @@ const SecurityScore = ({ score, riskLevel }: SecurityScoreProps) => {
   return (
     <div className="mt-4 mb-8 animate-fade-in">
       <div className={cn(
-        "p-6 rounded-lg bg-gradient-to-br transition-all duration-500",
+        "p-6 rounded-lg bg-gradient-to-br transition-all duration-500 shadow-lg",
         getGradient()
       )}>
         <div className="security-gauge">
@@ -62,19 +77,29 @@ const SecurityScore = ({ score, riskLevel }: SecurityScoreProps) => {
               getColor()
             )} 
           />
-          <div className="security-gauge-value text-white">
+          <div className="security-gauge-value text-white animate-pulse-slow">
             {score}
           </div>
         </div>
         <div className="text-center mt-4">
-          <h3 className="text-xl font-bold text-white animate-pulse-slow">
-            {riskLevel === 'safe' ? 'Safe' : riskLevel === 'suspicious' ? 'Suspicious' : 'Dangerous'}
-          </h3>
-          <p className="text-white/80">Security Score</p>
+          <div className="flex items-center justify-center gap-2">
+            <Badge className={cn(
+              "py-1 px-3 text-white animate-pulse-slow",
+              riskLevel === 'safe' ? 'bg-green-600' : 
+              riskLevel === 'suspicious' ? 'bg-yellow-600' : 'bg-red-600'
+            )}>
+              {getIcon()}
+              <span className="ml-1 text-sm">
+                {riskLevel === 'safe' ? 'Safe' : 
+                 riskLevel === 'suspicious' ? 'Suspicious' : 'Dangerous'}
+              </span>
+            </Badge>
+          </div>
+          <p className="text-white/80 mt-1">Security Score</p>
           <Progress 
             value={score} 
             className={cn(
-              "mt-4 h-2 transition-all duration-500",
+              "mt-4 h-3 bg-white/30 transition-all duration-500 rounded-full",
               getColor()
             )}
           />
