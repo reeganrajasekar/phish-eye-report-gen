@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { AlertCircle, CheckCircle } from 'lucide-react';
 import { analyzeUrl } from '@/utils/urlAnalyzer';
+import { cn } from '@/lib/utils';
 
 interface UrlFormProps {
   onAnalyze: (url: string) => void;
