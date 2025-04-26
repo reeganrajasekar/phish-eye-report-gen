@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import UrlForm from '@/components/UrlForm';
 import PhishingReport from '@/components/PhishingReport';
@@ -17,7 +16,7 @@ const Index = () => {
       await new Promise(resolve => setTimeout(resolve, 1500));
       
       // Analyze the URL
-      const analysisResult = analyzeUrl(url);
+      const analysisResult = await analyzeUrl(url);
       setResult(analysisResult);
     } catch (error) {
       console.error('Error analyzing URL:', error);

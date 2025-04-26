@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,11 +24,11 @@ const UrlForm = ({ onAnalyze, isLoading }: UrlFormProps) => {
       return;
     }
     
-    const timeoutId = setTimeout(() => {
+    const timeoutId = setTimeout(async () => {
       setIsValidating(true);
       try {
         // Quick preliminary analysis
-        const prelimAnalysis = analyzeUrl(url);
+        const prelimAnalysis = await analyzeUrl(url);
         setQuickCheck({
           score: prelimAnalysis.score,
           valid: true
@@ -47,7 +46,7 @@ const UrlForm = ({ onAnalyze, isLoading }: UrlFormProps) => {
     return () => clearTimeout(timeoutId);
   }, [url]);
   
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (url.trim()) {
       onAnalyze(url.trim());

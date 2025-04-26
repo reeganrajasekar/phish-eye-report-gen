@@ -1,5 +1,6 @@
-
 // URL analysis utility for phishing detection
+
+import { checkDnsRecords } from './dnsChecker';
 
 interface UrlFeature {
   name: string;
@@ -16,12 +17,53 @@ export interface AnalysisResult {
   features: UrlFeature[];
 }
 
-// Helper function to calculate domain age (simulated)
+// Improved domain age calculation using a hash function for demo
 const getDomainAge = (domain: string): number => {
-  // This would normally check WHOIS data
-  // For demo, return a random age between 0-1000 days
-  const hash = domain.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  return hash % 1000;
+  const currentDate = new Date();
+  const registrationDate = new Date();
+  
+  // Create a deterministic "registration date" based on domain name
+  const hash = domain.split('').reduce((acc, char) => {
+    return acc + char.charCodeAt(0);
+  }, 0);
+  
+  // Set registration date between 0-5 years ago
+  registrationDate.setDate(registrationDate.getDate() - (hash % (365 * 5)));
+  
+  const ageInDays = Math.floor((currentDate.getTime() - registrationDate.getTime()) / (1000 * 60 * 60 * 24));
+  return ageInDays;
+};
+
+// Check domain age and DNS records
+const checkDomainInfo = async (url: string): Promise<UrlFeature> => {
+  try {
+    const urlObj = new URL(url);
+    const hostname = urlObj.hostname;
+    const domainAge = getDomainAge(hostname);
+    const dnsCheck = await checkDnsRecords(hostname);
+    
+    const details = [
+      `Domain age: ${domainAge} days`,
+      `DNS Records:`,
+      ...dnsCheck.records.map(record => `${record.type}: ${record.value}`)
+    ].join('\n');
+    
+    return {
+      name: "Domain Information",
+      description: "Checks domain age and DNS records",
+      risk: domainAge < 30 ? 'high' : (domainAge < 180 ? 'medium' : 'low'),
+      status: domainAge < 180 || !dnsCheck.hasValidRecords,
+      details
+    };
+  } catch (e) {
+    return {
+      name: "Domain Information",
+      description: "Checks domain age and DNS records",
+      risk: 'high',
+      status: true,
+      details: 'Unable to verify domain information'
+    };
+  }
 };
 
 // Check if URL contains suspicious words
@@ -124,31 +166,6 @@ const checkSpecialChars = (url: string): UrlFeature => {
   };
 };
 
-// Check for domain age (simulated)
-const checkDomainAge = (url: string): UrlFeature => {
-  try {
-    const urlObj = new URL(url);
-    const hostname = urlObj.hostname;
-    const domainAge = getDomainAge(hostname);
-    
-    return {
-      name: "Domain Age",
-      description: "Recently registered domains are more likely to be used for phishing",
-      risk: domainAge < 30 ? 'high' : (domainAge < 180 ? 'medium' : 'low'),
-      status: domainAge < 180,
-      details: `Domain age: ${domainAge} days`
-    };
-  } catch (e) {
-    return {
-      name: "Domain Age",
-      description: "Recently registered domains are more likely to be used for phishing",
-      risk: 'none',
-      status: false,
-      details: 'Unable to analyze domain age for invalid URL'
-    };
-  }
-};
-
 // Check for HTTPS protocol
 const checkHttps = (url: string): UrlFeature => {
   const hasHttps = url.startsWith('https://');
@@ -195,25 +212,24 @@ const getRiskLevel = (score: number): 'safe' | 'suspicious' | 'dangerous' => {
 };
 
 // Main analysis function
-export const analyzeUrl = (url: string): AnalysisResult => {
-  // Clean up URL if needed (ensure it has protocol)
+export const analyzeUrl = async (url: string): Promise<AnalysisResult> => {
   let cleanUrl = url;
   if (!url.startsWith('http://') && !url.startsWith('https://')) {
     cleanUrl = 'http://' + url;
   }
   
   // Run all checks
+  const domainInfo = await checkDomainInfo(cleanUrl);
   const features: UrlFeature[] = [
     checkSuspiciousWords(cleanUrl),
     checkSubdomains(cleanUrl),
     checkUrlLength(cleanUrl),
     checkIpAddress(cleanUrl),
     checkSpecialChars(cleanUrl),
-    checkDomainAge(cleanUrl),
+    domainInfo,
     checkHttps(cleanUrl)
   ];
   
-  // Calculate score and risk level
   const score = calculateScore(features);
   const riskLevel = getRiskLevel(score);
   
